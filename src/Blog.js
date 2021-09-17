@@ -1,7 +1,9 @@
-import Nav from './Nav';
-import Explore from './Explore';
 import React from 'react';
 import Cookies from 'js-cookie';
+
+import Nav from './Nav';
+import Explore from './Explore';
+import Profile from './Profile';
 import SideBar from './SideBar';
 
 const url = "http://localhost:8080";
@@ -15,14 +17,20 @@ class Blog extends React.Component {
             uid: Cookies.get("washu-uid"),
             uinfo: null,
             error: null,
-            message: null
+            message: null,
+            content: "explore"
         }
-        this.getUserInfo();
         console.log(this.state);
 
         this.handleLogin = this.handleLogin.bind(this);
         this.handleSignout = this.handleSignout.bind(this);
         this.handleRegister = this.handleRegister.bind(this);
+        this.handleNav = this.handleNav.bind(this);
+        this.handleUpdateProfile = this.handleUpdateProfile.bind(this);
+    }
+
+    componentDidMount() {
+        this.getUserInfo();
     }
 
     handleLogin(username, password) {
@@ -66,7 +74,8 @@ class Blog extends React.Component {
         this.setState({
             uinfo: null,
             token: null,
-            uid: null
+            uid: null,
+            content: "explore"
         });
     }
 
@@ -104,22 +113,95 @@ class Blog extends React.Component {
         });
     }
 
-    render() {
-        return (
-            <div>
-                <Nav />
-                <div className="container mt-3">
-                    <div className="row justify-content-md-center">
-                        <div className="col-md-3">
-                            <SideBar uinfo={this.state.uinfo} handleLogin={this.handleLogin} handleSignout={this.handleSignout} handleRegister={this.handleRegister}/>
-                        </div>
-                        <div className="col-md-9">
-                            <Explore />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+    handleNav(nav) {
+        this.setState({content: nav});
+    }
+
+    renderContent() {
+        if (this.state.content === "explore") {
+            return <Explore content="all"/>;
+        } else if (this.state.content === "friends") {
+            return <Explore content="friends"/>;
+        } else {
+            return <Profile uinfo={this.state.uinfo} handleUpdate={this.handleUpdateProfile}/>;
+        }
+    }
+
+    async handleUpdateProfile(userData) {
+        let image = null;
+        if (this.valid(userData.files) && userData.files.length > 0) {
+            image = await this.uploadFile(userData.files[0]);
+        }
+        console.log(image)
+        const requestOptions = {
+            method: "PUT",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": this.state.token
+             },
+            body: JSON.stringify({
+                user: {
+                    username: userData.username,
+                    email: userData.email,
+                    avatar: image
+                },
+                password: userData.newPasswd
+            })
+        };
+        fetch(url + "/user/" + this.state.uid, requestOptions)
+        .then(response => {
+            if (response.status === 200) {
+                return response.json();
+            } else {
+                this.setState({error: "Update failed"});
+                console.log(this.state);
+            }
+        }).then(data => {
+            if (data.avatar != null) {
+                data.avatar = url + "/image/" + data.avatar;
+            }
+            this.setState({
+                error: null,
+                uinfo: data,
+                message: "User profile updated!"
+            });
+            console.log(data);
+            console.log(this.state);
+        });
+    }
+
+    async uploadFile(file) {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const requestOptions = {
+            method: "POST",
+            headers: { 
+                "Authorization": this.state.token
+             },
+            body: formData
+        };
+
+        const image = await fetch(url + "/image", requestOptions)
+        .then(response => {
+            if (response.status === 200) {
+                console.log(response.body);
+                return response.text();
+            } else {
+                this.setState({error: "Update failed"});
+                console.log(this.state);
+            }
+        }).then(data => {
+            this.setState({
+                error: null,
+                message: "Image uploaded!"
+            });
+            console.log(data);
+            console.log(this.state);
+            return data;
+        });
+
+        return image;
     }
 
     getUserInfo() {
@@ -134,6 +216,9 @@ class Blog extends React.Component {
             fetch(url + "/user/" + this.state.uid, requestOptions)
             .then(res => res.json())
             .then(data => {
+                if (data.avatar != null) {
+                    data.avatar = url + "/image/" + data.avatar;
+                }
                 this.setState({
                     uinfo: data
                 })
@@ -145,6 +230,24 @@ class Blog extends React.Component {
 
     valid(obj) {
         return obj !== undefined && obj != null;
+    }
+
+    render() {
+        return (
+            <div>
+                <Nav handleNav={this.handleNav} uid={this.state.uid}/>
+                <div className="container mt-3">
+                    <div className="row justify-content-md-center">
+                        <div className="col-md-3">
+                            <SideBar uinfo={this.state.uinfo} handleLogin={this.handleLogin} handleSignout={this.handleSignout} handleRegister={this.handleRegister}/>
+                        </div>
+                        <div className="col-md-9">
+                            {this.renderContent()}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 }
 

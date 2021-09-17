@@ -1,0 +1,16 @@
+.item-sm {
+    /* make sure your .items will get correct height */
+    height: 300px;
+}
+
+.item-lg {
+    /* make sure your .items will get correct height */
+    height: 600px;
+}
+
+.carousel-item {
+    background-size: cover;
+    background-position: 50% 50%;
+    width: 100%;
+    height: 100%;
+}

@@ -38,7 +38,7 @@ class LoginForm extends React.Component {
                     <label htmlFor="exampleInputPassword1" className="form-label">Password</label>
                     <input type="password" className="form-control" id="password" value={this.state.password} onChange={this.handlePasswordChange}/>
                 </div>
-                <button type="submit" className="btn btn-outline-secondary" onClick={this.handleLoginSubmit}>Login</button>
+                <button className="btn btn-outline-secondary" onClick={this.handleLoginSubmit}>Login</button>
             </form>
         );
     }

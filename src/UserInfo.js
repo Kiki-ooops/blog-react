@@ -20,12 +20,11 @@ class UserInfo extends React.Component {
                     <div className="col">
                         <div className="card">
                             <div className="card-body">
-                                <img src="/morty.png" className="card-img-top avatar" alt={this.props.uinfo.username}/>
+                                <img src={this.props.uinfo.avatar === null ? "/morty.png" : this.props.uinfo.avatar} className="card-img-top avatar" alt={this.props.uinfo.username}/>
                                 <h5 className="card-title pt-2">{this.props.uinfo.username}</h5>
                                 <h6 className="card-subtitle mb-2 text-muted">{this.props.uinfo.email}</h6>
                                 <div className="d-flex justify-content-between pt-3">
-                                    <button type="button" className="btn btn-sm btn-outline-secondary mr-5" onClick={this.handleSignout}>Sign Out</button>
-                                    <button type="button" className="btn btn-sm btn-outline-secondary">Edit Profile</button>
+                                    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={this.handleSignout}>Sign Out</button>
                                 </div>
                             </div>
                         </div>
